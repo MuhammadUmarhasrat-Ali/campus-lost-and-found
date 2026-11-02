@@ -22,58 +22,35 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// 1. CORS Configuration (origin: true mirrors incoming origin safely for credentials)
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://127.0.0.1:5173',
-  'https://campus-lost-and-found-sigma-liard.vercel.app',
-  process.env.CLIENT_URL,
-].filter(Boolean);
-
-const corsOptions = {
-  origin: (origin, callback) => {
-    // Reflect origin for matching domains or direct API client tools
-    if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
-      return callback(null, true);
-    }
-    return callback(null, true); // Fallback allows testing across environments
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-  optionsSuccessStatus: 200,
-};
-
-app.use(cors(corsOptions));
-
-// 2. Explicit Preflight Responder (Prevents '*' with credentials conflict)
+// 1. Unified CORS & Preflight Handler (Always safe, no duplicate headers, no wildcard conflicts)
 app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+
   if (req.method === 'OPTIONS') {
-    const origin = req.headers.origin;
-    if (origin) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
-    }
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
-    return res.status(200).end();
+    return res.status(204).end();
   }
   next();
 });
 
-// 3. Security Headers
+// 2. Security headers (crossOriginResourcePolicy set to cross-origin)
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
   })
 );
 
-// 4. Body parsers
+// 3. Body parsers
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
-// 5. Rate Limiting (Ignore OPTIONS requests)
+// 4. Rate limiting (skips preflight checks)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 300,
