@@ -105,17 +105,18 @@ app.use(notFound);
 app.use(errorHandler);
 
 // 7. Server listen
-const PORT = process.env.PORT || 5000;
+// Server startup
+const PORT = process.env.PORT || 10000;
 
 if (process.env.NODE_ENV !== 'test') {
   connectDB()
     .then(() => {
-      app.listen(PORT, () => {
+      app.listen(PORT, '0.0.0.0', () => {
         console.log(`[Server] Campus Lost & Found API running on port ${PORT}`);
       });
     })
     .catch((err) => {
-      console.error('[Server] Database connection failed:', err);
+      console.error('[Server] Failed to connect to database during startup:', err);
     });
 }
 
