@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import {
   register,
   login,
@@ -11,6 +12,9 @@ import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
+// Intercept and resolve all OPTIONS preflight requests for auth endpoints
+router.options('*', cors());
+
 router.post('/register', register);
 router.post('/login', login);
 router.post('/logout', logout);
@@ -19,4 +23,3 @@ router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
 
 export default router;
-

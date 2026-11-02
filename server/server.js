@@ -22,35 +22,44 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// 1. Unified CORS & Preflight Handler (Always safe, no duplicate headers, no wildcard conflicts)
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (origin) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-  }
-  res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+// 1. CORS Configuration
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'https://campus-lost-and-found-sigma-liard.vercel.app',
+  process.env.CLIENT_URL,
+].filter(Boolean);
 
-  if (req.method === 'OPTIONS') {
-    return res.status(204).end();
-  }
-  next();
-});
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+  optionsSuccessStatus: 200,
+};
 
-// 2. Security headers (crossOriginResourcePolicy set to cross-origin)
+// Enable CORS and catch all OPTIONS preflight requests globally
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
+// 2. Security Headers
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
   })
 );
 
-// 3. Body parsers
+// 3. Body Parsers
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
-// 4. Rate limiting (skips preflight checks)
+// 4. Rate Limiter (skips preflight checks)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 300,
@@ -78,7 +87,7 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Mount API routes
+// Mount API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/items', itemRoutes);
@@ -86,11 +95,11 @@ app.use('/api/contact-requests', contactRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Error handling middlewares
+// Error Handling Middlewares
 app.use(notFound);
 app.use(errorHandler);
 
-// Server startup
+// Server Startup
 const PORT = process.env.PORT || 5000;
 
 if (process.env.NODE_ENV !== 'test') {
