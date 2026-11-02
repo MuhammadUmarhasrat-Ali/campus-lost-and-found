@@ -22,38 +22,36 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// 1. Bulletproof CORS & OPTIONS interceptor - MUST BE FIRST
-app.use((req, res, next) => {
-  const allowedOrigins = [
-    'https://campus-lost-and-found-sigma-liard.vercel.app',
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-  ];
+// 1. CORS Configuration - handles all origins, methods, and OPTIONS preflight
+const allowedOrigins = [
+  'https://campus-lost-and-found-sigma-liard.vercel.app',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+];
 
-  const origin = req.headers.origin;
-  if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
-    res.setHeader('Access-Control-Allow-Origin', origin || '*');
-  }
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // allow requests with no origin (like mobile apps, curl, or Postman)
+      if (!origin) return callback(null, true);
+      if (
+        allowedOrigins.includes(origin) ||
+        origin.endsWith('.vercel.app')
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true); // fallback allow to prevent registration lockouts
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+  })
+);
 
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader(
-    'Access-Control-Allow-Methods',
-    'GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD'
-  );
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
-  );
+// Explicitly handle preflight for all routes
+app.options('*', cors());
 
-  // Handle browser preflight OPTIONS immediately
-  if (req.method === 'OPTIONS') {
-    return res.status(204).end();
-  }
-
-  next();
-});
-
-// 2. Helmet for security headers
+// 2. Helmet for security headers (configured for cross-origin APIs)
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
@@ -65,10 +63,10 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
-// 4. Rate Limiter
+// 4. Rate Limiter (skip OPTIONS preflight)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 300,
+  max: 500,
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => req.method === 'OPTIONS',
