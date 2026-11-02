@@ -45,7 +45,7 @@ app.use((req, res, next) => {
     'Origin, X-Requested-With, Content-Type, Accept, Authorization'
   );
 
-  // If the browser sends preflight OPTIONS, reply 204 immediately and stop processing
+  // Handle browser preflight OPTIONS immediately
   if (req.method === 'OPTIONS') {
     return res.status(204).end();
   }
@@ -83,7 +83,16 @@ app.use('/api', limiter);
 const uploadsPath = path.join(__dirname, 'uploads');
 app.use('/uploads', express.static(uploadsPath));
 
-// Health check
+// Root check endpoint
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: 'online',
+    message: 'Campus Lost & Found API is up and running!',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'ok',
@@ -104,8 +113,7 @@ app.use('/api/admin', adminRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
-// 7. Server listen
-// Server startup
+// 7. Server startup
 const PORT = process.env.PORT || 10000;
 
 if (process.env.NODE_ENV !== 'test') {
