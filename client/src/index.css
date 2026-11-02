@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-main: #FFFFFF;
+  --color-secondary: #F7F7FA;
+  --color-card: #F1E9FA;
+  --color-card-light: #F8F4FD;
+  --color-purple: #8B45E8;
+  --color-blue: #4263EB;
+  --color-border: #E8E8ED;
+  --color-text: #252525;
+  --color-muted: #858585;
+  --color-found: #16B978;
+  --color-lost: #E84383;
+}
+
+body {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--color-main);
+  color: var(--color-text);
+  overflow-x: hidden;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F7F7FA;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D5D5DF;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #8B45E8;
+}
+
+/* Elegant gradient button utility */
+.btn-gradient {
+  background: linear-gradient(135deg, #4263EB 0%, #8B45E8 100%);
+  color: #FFFFFF;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-gradient:hover {
+  opacity: 0.94;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px 0 rgba(139, 69, 232, 0.35);
+}
+
+.btn-gradient:active {
+  transform: translateY(0);
+}
+
