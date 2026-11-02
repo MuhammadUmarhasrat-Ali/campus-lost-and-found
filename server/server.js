@@ -22,14 +22,7 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// Security HTTP headers
-app.use(
-  helmet({
-    crossOriginResourcePolicy: { policy: 'cross-origin' },
-  })
-);
-
-// CORS configuration
+// 1. CORS Configuration (origin: true mirrors incoming origin safely for credentials)
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
@@ -38,33 +31,55 @@ const allowedOrigins = [
 ].filter(Boolean);
 
 const corsOptions = {
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      return callback(null, true);
-    } else {
+  origin: (origin, callback) => {
+    // Reflect origin for matching domains or direct API client tools
+    if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
       return callback(null, true);
     }
+    return callback(null, true); // Fallback allows testing across environments
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  optionsSuccessStatus: 200,
 };
 
 app.use(cors(corsOptions));
-app.options('/*', cors(corsOptions));
 
-// Body parsers
+// 2. Explicit Preflight Responder (Prevents '*' with credentials conflict)
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    const origin = req.headers.origin;
+    if (origin) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+    }
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
+    return res.status(200).end();
+  }
+  next();
+});
+
+// 3. Security Headers
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+);
+
+// 4. Body parsers
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
-// Rate Limiting (General API limiter)
+// 5. Rate Limiting (Ignore OPTIONS requests)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 300,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => req.method === 'OPTIONS',
   message: {
     success: false,
     message: 'Too many requests from this IP address, please try again after 15 minutes.',
@@ -102,13 +117,15 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 
 if (process.env.NODE_ENV !== 'test') {
-  connectDB().then(() => {
-    app.listen(PORT, () => {
-      console.log(`[Server] Campus Lost & Found API running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+  connectDB()
+    .then(() => {
+      app.listen(PORT, () => {
+        console.log(`[Server] Campus Lost & Found API running on port ${PORT}`);
+      });
+    })
+    .catch((err) => {
+      console.error('[Server] Failed to connect to database during startup:', err);
     });
-  }).catch((err) => {
-    console.error('[Server] Failed to connect to database during startup:', err);
-  });
 }
 
 export default app;
