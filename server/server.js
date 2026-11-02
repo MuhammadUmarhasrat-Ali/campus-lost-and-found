@@ -22,44 +22,50 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// 1. CORS Configuration
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://127.0.0.1:5173',
-  'https://campus-lost-and-found-sigma-liard.vercel.app',
-  process.env.CLIENT_URL,
-].filter(Boolean);
+// 1. Bulletproof CORS & OPTIONS interceptor - MUST BE FIRST
+app.use((req, res, next) => {
+  const allowedOrigins = [
+    'https://campus-lost-and-found-sigma-liard.vercel.app',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+  ];
 
-const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    return callback(null, true);
-  },
-  credentials: true,
-  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
-  optionsSuccessStatus: 200,
-};
+  const origin = req.headers.origin;
+  if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+    res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  }
 
-// Enable CORS and catch all OPTIONS preflight requests globally
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader(
+    'Access-Control-Allow-Methods',
+    'GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD'
+  );
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+  );
 
-// 2. Security Headers
+  // If the browser sends preflight OPTIONS, reply 204 immediately and stop processing
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+
+  next();
+});
+
+// 2. Helmet for security headers
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
   })
 );
 
-// 3. Body Parsers
+// 3. Body parsers
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
-// 4. Rate Limiter (skips preflight checks)
+// 4. Rate Limiter
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 300,
@@ -73,21 +79,20 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter);
 
-// Serve static uploaded files
+// Static uploads
 const uploadsPath = path.join(__dirname, 'uploads');
 app.use('/uploads', express.static(uploadsPath));
 
-// Health check endpoint
+// Health check
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'ok',
     service: 'Campus Lost & Found Backend API',
     timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
   });
 });
 
-// Mount API Routes
+// 5. Mount API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/items', itemRoutes);
@@ -95,11 +100,11 @@ app.use('/api/contact-requests', contactRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Error Handling Middlewares
+// 6. Error Handling
 app.use(notFound);
 app.use(errorHandler);
 
-// Server Startup
+// 7. Server listen
 const PORT = process.env.PORT || 5000;
 
 if (process.env.NODE_ENV !== 'test') {
@@ -110,7 +115,7 @@ if (process.env.NODE_ENV !== 'test') {
       });
     })
     .catch((err) => {
-      console.error('[Server] Failed to connect to database during startup:', err);
+      console.error('[Server] Database connection failed:', err);
     });
 }
 
