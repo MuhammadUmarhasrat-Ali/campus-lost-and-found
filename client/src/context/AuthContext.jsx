@@ -9,7 +9,7 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuth = useCallback(async () => {
     try {
-      const { data } = await api.get('/api/auth/me');
+      const { data } = await api.get('/auth/me');
       setUser(data.data.user);
     } catch (err) {
       setUser(null);
@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
   }, [checkAuth]);
 
   const login = async (email, password) => {
-    const { data } = await api.post('/api/auth/login', { email, password });
+    const { data } = await api.post('/auth/login', { email, password });
     if (data.data.token) {
       localStorage.setItem('token', data.data.token);
     }
@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (formData) => {
-    const { data } = await api.post('/api/auth/register', formData);
+    const { data } = await api.post('/auth/register', formData);
     if (data.data.token) {
       localStorage.setItem('token', data.data.token);
     }
@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await api.post('/api/auth/logout');
+      await api.post('/auth/logout');
     } catch (err) {
       // Continue cleanup on frontend regardless
     } finally {
@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateProfile = async (profileData) => {
-    const { data } = await api.put('/api/users/profile', profileData);
+    const { data } = await api.put('/users/profile', profileData);
     setUser(data.data.user);
     return data;
   };

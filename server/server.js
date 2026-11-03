@@ -112,11 +112,24 @@ app.use(notFound);
 app.use(errorHandler);
 
 // 7. Server startup
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 5000;
 
 if (process.env.NODE_ENV !== 'test') {
   connectDB()
-    .then(() => {
+    .then(async () => {
+      try {
+        const User = (await import('./models/User.js')).default;
+        const count = await User.countDocuments();
+        if (count === 0) {
+          console.log('[Server] Database is empty. Seeding initial demo data...');
+          const { seedDatabase } = await import('./scripts/seedData.js');
+          await seedDatabase();
+          console.log('[Server] Demo data seeded successfully.');
+        }
+      } catch (seedErr) {
+        console.warn('[Server] Auto-seed check notice:', seedErr.message);
+      }
+
       app.listen(PORT, '0.0.0.0', () => {
         console.log(`[Server] Campus Lost & Found API running on port ${PORT}`);
       });

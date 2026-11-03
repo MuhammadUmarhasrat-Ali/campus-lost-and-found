@@ -8,11 +8,8 @@ import Report from '../models/Report.js';
 
 dotenv.config();
 
-const seed = async () => {
+export const seedDatabase = async () => {
   try {
-    console.log('[Seed] Connecting to database...');
-    await connectDB();
-
     console.log('[Seed] Clearing existing records...');
     await Promise.all([
       User.deleteMany(),
@@ -275,13 +272,26 @@ const seed = async () => {
     console.log('   Password: Password@123');
     console.log('==================================================\n');
 
-    await closeDB();
-    process.exit(0);
+    return true;
   } catch (error) {
     console.error('[Seed Error]:', error);
-    process.exit(1);
+    throw error;
   }
 };
 
-seed();
+// If run directly from command line
+if (process.argv[1] && process.argv[1].replace(/\\/g, '/').endsWith('scripts/seedData.js')) {
+  (async () => {
+    try {
+      console.log('[Seed] Connecting to database...');
+      await connectDB();
+      await seedDatabase();
+      await closeDB();
+      process.exit(0);
+    } catch (err) {
+      console.error('[Seed Script Error]:', err);
+      process.exit(1);
+    }
+  })();
+}
 

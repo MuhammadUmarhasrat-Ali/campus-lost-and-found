@@ -11,6 +11,10 @@ const api = axios.create({
 // Request interceptor to attach JWT token if stored locally (dual cookie + token support)
 api.interceptors.request.use(
   (config) => {
+    // Prevent duplicate /api when baseURL already ends with /api
+    if (config.baseURL?.endsWith('/api') && config.url?.startsWith('/api/')) {
+      config.url = config.url.replace(/^\/api/, '');
+    }
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
