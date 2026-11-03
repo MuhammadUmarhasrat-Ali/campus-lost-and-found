@@ -101,13 +101,24 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// 5. Mount API Routes
+// 5. Mount API Routes (support both /api/path and /path for maximum client compatibility)
 app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
+
 app.use('/api/users', userRoutes);
+app.use('/users', userRoutes);
+
 app.use('/api/items', itemRoutes);
+app.use('/items', itemRoutes);
+
 app.use('/api/contact-requests', contactRoutes);
+app.use('/contact-requests', contactRoutes);
+
 app.use('/api/reports', reportRoutes);
+app.use('/reports', reportRoutes);
+
 app.use('/api/admin', adminRoutes);
+app.use('/admin', adminRoutes);
 
 // 6. Error Handling
 app.use(notFound);
