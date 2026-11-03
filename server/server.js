@@ -25,6 +25,7 @@ const app = express();
 // 1. CORS Configuration - handles all origins, methods, and OPTIONS preflight
 const allowedOrigins = [
   'https://campus-lost-and-found-sigma-liard.vercel.app',
+  'https://clever-biscochitos-0890f8.netlify.app',
   'http://localhost:5173',
   'http://127.0.0.1:5173',
 ];
@@ -36,7 +37,8 @@ app.use(
       if (!origin) return callback(null, true);
       if (
         allowedOrigins.includes(origin) ||
-        origin.endsWith('.vercel.app')
+        origin.endsWith('.vercel.app') ||
+        origin.endsWith('.netlify.app')
       ) {
         return callback(null, true);
       }
