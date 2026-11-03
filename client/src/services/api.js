@@ -1,7 +1,13 @@
 import axios from 'axios';
 
+const defaultBaseURL =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.PROD
+    ? 'https://campus-lost-and-found-v0kl.onrender.com/api'
+    : '/api');
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: defaultBaseURL,
   withCredentials: true, // Send httpOnly cookies
   headers: {
     'Content-Type': 'application/json',
