@@ -19,6 +19,7 @@ import { useToast } from '../context/ToastContext';
 import StatCard from '../components/dashboard/StatCard';
 import Button from '../components/common/Button';
 import { TypeBadge, StatusBadge } from '../components/common/Badge';
+import { getImageUrl } from '../utils/imageUtils';
 
 export const DashboardPage = () => {
   const { user } = useAuth();
@@ -264,7 +265,7 @@ export const DashboardPage = () => {
                   <div className="w-12 h-12 rounded-xl bg-[#F1E9FA] overflow-hidden flex-shrink-0 border border-[#E8E8ED]">
                     {item.images?.[0]?.url ? (
                       <img
-                        src={item.images[0].url}
+                        src={getImageUrl(item.images[0].url)}
                         alt={item.title}
                         className="w-full h-full object-cover"
                       />

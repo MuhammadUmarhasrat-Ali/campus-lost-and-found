@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Calendar, Clock, ArrowRight, Image as ImageIcon } from 'lucide-react';
 import { TypeBadge, StatusBadge, CategoryBadge } from '../common/Badge';
+import { getImageUrl } from '../../utils/imageUtils';
 
 export const ItemCard = ({ item }) => {
   if (!item) return null;
@@ -14,7 +15,7 @@ export const ItemCard = ({ item }) => {
       })
     : 'Unknown date';
 
-  const firstImage = item.images && item.images.length > 0 ? item.images[0].url : null;
+  const firstImage = item.images && item.images.length > 0 ? getImageUrl(item.images[0].url) : null;
 
   return (
     <div className="group rounded-2xl bg-[#F1E9FA] border border-[#E8E8ED] hover:border-[#8B45E8]/40 hover:shadow-card transition-all duration-300 flex flex-col overflow-hidden">

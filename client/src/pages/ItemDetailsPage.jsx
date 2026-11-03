@@ -21,6 +21,7 @@ import {
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { getImageUrl } from '../utils/imageUtils';
 import { TypeBadge, StatusBadge, CategoryBadge } from '../components/common/Badge';
 import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
@@ -211,7 +212,7 @@ export const ItemDetailsPage = () => {
           <div className="relative aspect-[4/3] rounded-3xl bg-[#F1E9FA] border border-[#E8E8ED] overflow-hidden shadow-sm">
             {hasImages ? (
               <img
-                src={item.images[activeImageIndex]?.url}
+                src={getImageUrl(item.images[activeImageIndex]?.url)}
                 alt={item.title}
                 className="w-full h-full object-cover"
               />
@@ -244,7 +245,7 @@ export const ItemDetailsPage = () => {
                   }`}
                 >
                   <img
-                    src={img.url}
+                    src={getImageUrl(img.url)}
                     alt="Thumbnail"
                     className="w-full h-full object-cover"
                   />

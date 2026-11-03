@@ -17,6 +17,7 @@ import { useToast } from '../context/ToastContext';
 import { TypeBadge, StatusBadge, CategoryBadge } from '../components/common/Badge';
 import Button from '../components/common/Button';
 import ConfirmationModal from '../components/common/ConfirmationModal';
+import { getImageUrl } from '../utils/imageUtils';
 
 export const MyPostsPage = () => {
   const { success, error: toastError } = useToast();
@@ -172,7 +173,7 @@ export const MyPostsPage = () => {
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#F1E9FA] overflow-hidden flex-shrink-0 border border-[#E8E8ED]">
                   {item.images?.[0]?.url ? (
                     <img
-                      src={item.images[0].url}
+                      src={getImageUrl(item.images[0].url)}
                       alt={item.title}
                       className="w-full h-full object-cover"
                     />

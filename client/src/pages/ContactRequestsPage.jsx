@@ -19,6 +19,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import Button from '../components/common/Button';
 import { TypeBadge } from '../components/common/Badge';
+import { getImageUrl } from '../utils/imageUtils';
 
 export const ContactRequestsPage = () => {
   const { user } = useAuth();
@@ -201,7 +202,7 @@ export const ContactRequestsPage = () => {
                     <div className="w-10 h-10 rounded-xl bg-white overflow-hidden flex-shrink-0 border border-[#E8E8ED]">
                       {item?.images?.[0]?.url ? (
                         <img
-                          src={item.images[0].url}
+                          src={getImageUrl(item.images[0].url)}
                           alt={item.title}
                           className="w-full h-full object-cover"
                         />
